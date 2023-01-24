@@ -1,9 +1,13 @@
 import Link from 'next/link';
-import { useRef, useState } from 'react';
-import FormData from 'form-data';
+import { FormEvent, useRef, useState } from 'react';
 
 import { RegisterData } from '../types/register';
 import Field from '../components/Home/Field';
+import apiClient from '../utils/client';
+import { useRouter } from "next/router";
+import { LoadRemove, LoadStart } from '../components/Loading';
+import { NotificationFailure, NotificationSuccess } from '../components/Notifications';
+import FormData from 'form-data';
 
 function Register() {
   const initialValues: RegisterData = {
@@ -18,6 +22,7 @@ function Register() {
   const hiddenFileInput = useRef<HTMLInputElement>(null);
 
   const data = new FormData();
+  const router = useRouter()
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files != null) {
@@ -36,21 +41,44 @@ function Register() {
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async (e: FormEvent) => {
+    /* 
+    TODO: 
+    1. Make a new user
+    2. Display a success notification (or error).
+    */
+    e.preventDefault();
+
+    if (formData.name.length === 0
+      || formData.lastName.length === 0
+      || formData.email.length === 0
+      || formData.password.length === 0
+      || selectedImage === null
+    ) return NotificationFailure("Parametros requeridos faltantes")
+
     data.append('image', selectedImage);
     data.append('name', formData.name);
     data.append('lastName', formData.lastName);
     data.append('email', formData.email);
     data.append('password', formData.password);
-    /* 
-      TODO: 
-      1. Make a new user
-      2. Display a sucess notification (or error).
-    */
-  };
+
+    LoadStart();
+    try {
+      const response = await apiClient.post("/signup", data, { headers: { 'Content-Type': 'multipart/form-data' } })
+      console.log(response);
+      NotificationSuccess("Usuario creado con exito");
+      router.push("/");
+    } catch (error) {
+      NotificationFailure("No se pudo crear el usuario. Vuelva a intentar");
+      console.log(error)
+      
+    }
+    LoadRemove();
+    };
 
   return (
-    <div
+    <form
+      onSubmit={handleRegister}
       id="register"
       className="right-side d-flex flex-column justify-content-start w-50 bg-chatter-green h-100 py-4 fs-1 fw-bold scroll-y"
     >
@@ -81,7 +109,7 @@ function Register() {
       <div className="content d-flex flex-column mb-4" data-aos="fade">
         <span>FOTO DE PERFIL</span>
         <label className="file">
-          <button className="btn btn-input-file" onClick={handleFileClick}>
+          <button type='button' className="btn btn-input-file" onClick={handleFileClick}>
             Seleccionar Archivo
           </button>
           <input
@@ -102,7 +130,7 @@ function Register() {
       />
 
       <div className="content d-flex flex-column mb-3 d-flex align-items-start" data-aos="fade">
-        <button className="btn btn-primary" onClick={handleRegister}>
+        <button className="btn btn-primary" type='submit'>
           Registrarse
         </button>
       </div>
@@ -113,7 +141,7 @@ function Register() {
           Inicia sesión aquí
         </Link>
       </div>
-    </div>
+    </form>
   );
 }
 
