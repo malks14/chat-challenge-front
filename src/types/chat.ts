@@ -13,6 +13,8 @@ export interface UserDataState {
 export interface ChatsState {
   chats: ChatTabProps[];
   isAllowedExpand: boolean;
+  isOpenModal: boolean;
+  ticketStatus: number;
 }
 
 export interface Chat {
