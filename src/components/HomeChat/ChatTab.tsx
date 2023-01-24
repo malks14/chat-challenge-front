@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import styled from 'styled-components';
-
 import { IoCheckmarkDoneOutline } from 'react-icons/io5';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { ChatTabProps } from '../../types/chat';
 import ConfirmDialog from '../ConfirmDialog';
 import ContextMenu from '../ContextMenu';
 import ChatTabContextMenu from './ChatTabContextMenu';
+import apiClient from '../../utils/client';
+import { LoadRemove, LoadStart } from '../Loading';
+import { NotificationFailure, NotificationSuccess } from '../Notifications';
 
 const Container = styled.div<{ isSelected: boolean }>`
   display: flex;
@@ -96,7 +98,8 @@ const ChatTabDots = styled.div`
 
 function ChatTab(chatTabProps: ChatTabProps) {
   const { name, image: photo, chatId, messages, selectedChat, onClick } = chatTabProps;
-
+  console.log(photo);
+  
   const [isOpen, setIsOpen] = useState(false);
 
   const lastMessage = messages[0]
@@ -104,11 +107,23 @@ function ChatTab(chatTabProps: ChatTabProps) {
     : 'No hay mensajes.';
   const lastMessageTime = messages[0] ? messages.slice(-1)[0].timeDate.slice(11, 16) + ' p.m.' : '';
 
-  const eraseChat = () => {
+  const eraseChat = async () => {
     /* 
       TODO: 
       1. Delete chat
     */
+    LoadStart();
+
+    try {
+      const deleteChat = apiClient.delete(`/chats/${chatId}`);
+      console.log(deleteChat);
+
+      NotificationSuccess('El chat se elimino satisfactoriamente');
+    } catch (error) {
+      NotificationFailure('Ocurrio un problema. No se pudo eliminar el chat');
+    }
+
+    LoadRemove();
   };
 
   const handleOpenModal = () => {
@@ -116,7 +131,7 @@ function ChatTab(chatTabProps: ChatTabProps) {
   };
 
   return (
-    <ContextMenu menuComponent={<ChatTabContextMenu />}>
+    <ContextMenu menuComponent={<ChatTabContextMenu  />}>
       <Container id="chatTab" isSelected={selectedChat === chatId} onClick={onClick}>
         <Wrapper>
           <ChatPhoto>
@@ -146,6 +161,7 @@ function ChatTab(chatTabProps: ChatTabProps) {
           handleCancel={setIsOpen}
           isOpen={isOpen}
         />
+        {/* <ChatTabContextMenu /> */}
       </Container>
     </ContextMenu>
   );
