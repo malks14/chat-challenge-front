@@ -1,8 +1,16 @@
 import Field from '../components/Home/Field';
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
+import { useAppDispatch } from '../redux/hooks';
 import FormData from 'form-data';
+import { setLoginData } from '../redux/userSlice';
 import Link from 'next/link';
+import apiClient from '../utils/client';
+import { useRouter } from 'next/router';
+import { NotificationFailure } from '../components/Notifications';
 import { LoginData } from '../types/login';
+import { LoadRemove, LoadStart } from '../components/Loading';
+
+
 
 function LoginForm() {
   const initialValues: LoginData = {
@@ -10,6 +18,8 @@ function LoginForm() {
     password: ''
   };
 
+  const dispatch = useAppDispatch();
+  const router = useRouter();
   const [formData, setFormData] = useState<LoginData>(initialValues);
   const data = new FormData();
 
@@ -18,7 +28,8 @@ function LoginForm() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleLogin = () => {
+  const handleLogin = async (event: FormEvent) => {
+    event.preventDefault();
     resetForm();
     data.append('email', formData.email);
     data.append('password', formData.password);
@@ -27,6 +38,27 @@ function LoginForm() {
       1. Check login
       2. Handle errors (if there is at least one) 
     */
+    if (formData.password.length === 0 || formData.email.length === 0) {
+      return NotificationFailure('Campos invalidos');
+    }
+
+    LoadStart();
+
+    try {
+      const response = await apiClient.post('/login', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+
+      
+      dispatch(setLoginData({ userId: response.data.userId, authToken: response.data.token }));
+
+      LoadRemove();
+      router.push('/chat');
+    } catch (error) {
+      NotificationFailure('El email o la contraseña son incorrectos');
+      LoadRemove();
+    }
   };
 
   const resetForm = () => {
@@ -34,8 +66,9 @@ function LoginForm() {
     // data.delete('password');
   };
 
+
   return (
-    <div
+    <form
       id="login"
       className="right-side d-flex flex-column justify-content-center w-50 bg-chatter-green h-100 py-5 fs-1 fw-bold"
     >
@@ -67,7 +100,7 @@ function LoginForm() {
           Registrate aquí
         </Link>
       </div>
-    </div>
+    </form>
   );
 }
 
