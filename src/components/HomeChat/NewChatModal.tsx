@@ -3,16 +3,19 @@ import { useState } from 'react';
 import FormData from 'form-data';
 
 import { ChatModalProps } from '../../types/chat';
+import { NotificationFailure, NotificationSuccess } from '../Notifications';
+import { LoadRemove, LoadStart } from '../Loading';
+import apiClient from '../../utils/client';
 
 function NewChatModal(chatModalProps: ChatModalProps) {
-  const { isOpen, setIsOpen } = chatModalProps;
+  const { isOpen, setIsOpen, getChatsData } = chatModalProps;
 
   const [selectedImage, setSelectedImage] = useState<any | null>(null);
   const [newChatName, setNewChatName] = useState<any | null>();
 
   const data = new FormData();
 
-  const createChat = () => {
+  const createChat = async () => {
     data.append('name', newChatName);
     data.append('image', selectedImage);
     /*
@@ -21,6 +24,25 @@ function NewChatModal(chatModalProps: ChatModalProps) {
         2. Update chats queue with getChatsData to display it
         3. Close popup with handleClose
     */
+   if (newChatName.length === 0) {
+    return NotificationFailure("El nombre del chat no puede estar vacio");
+   } else if (selectedImage === null) {
+    return NotificationFailure("La imagen del chat no puede estar vacia")
+   }
+
+   LoadStart();
+
+   try {
+    const createChat = apiClient.post("/chats", data, {headers: {'Content-Type': 'multipart/form-data'}});
+    console.log(createChat);
+    NotificationSuccess("Se ha creado el chat exitosamente")
+    getChatsData();
+    handleClose()
+    
+   } catch (error) {
+    NotificationFailure("No se pudo crear el chat")
+   }
+   LoadRemove()
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
