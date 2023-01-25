@@ -129,6 +129,7 @@ function ChatTab(chatTabProps: ChatTabProps) {
   const handleOpenModal = () => {
     setIsOpen(true);
   };
+  
 
   return (
     <ContextMenu menuComponent={<ChatTabContextMenu  />}>
@@ -161,7 +162,6 @@ function ChatTab(chatTabProps: ChatTabProps) {
           handleCancel={setIsOpen}
           isOpen={isOpen}
         />
-        {/* <ChatTabContextMenu /> */}
       </Container>
     </ContextMenu>
   );
