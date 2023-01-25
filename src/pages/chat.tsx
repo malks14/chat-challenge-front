@@ -236,7 +236,7 @@ function HomeChat() {
                 <ChatTab
                   key={i}
                   name={tab.name}
-                  image={tab.photo}
+                  image={tab.image}
                   chatId={tab.chatId}
                   messages={tab.messages}
                   userData={userData}
