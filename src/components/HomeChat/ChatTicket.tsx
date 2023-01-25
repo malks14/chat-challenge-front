@@ -4,13 +4,26 @@ import styled from 'styled-components';
 
 const Container = styled.div`
   position: absolute;
-  left: 40%;
+  left: 3%;
   top: 40%;
   z-index: 100;
   display: grid;
   place-items: center;
   justify-content: space-between;
   background-color: #fff;
+
+  @media (min-width: 376px) {
+    left: 8%;
+  }
+  @media (min-width: 426px) {
+    left: 27%;
+  }
+  @media (min-width: 769px) {
+    left: 36%;
+  }
+  @media (min-width: 1025px) {
+    left: 40%;
+  }
 `;
 
 const TicketContainer = styled.div`
